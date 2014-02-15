@@ -2,9 +2,9 @@ unsigned red = 0;
 unsigned green = 0;
 unsigned blue = 0;
 
-int RedPin = 3; //Redfff                                                                                                                                                                                                                                                                                                                                                                                                                                                        h     : PWM pin 10
-int GreenPin = 5; //Green: PWM pin 11
-int BluePin = 6; //Blue: PWM pin 9
+int RedPin = 9;
+int GreenPin = 10;
+int BluePin = 11;
 
 void setup() {
   
@@ -15,34 +15,30 @@ void setup() {
   
 }
 
-int reading_state = 0;
-
-int count = 0;
-unsigned long last = 0;
+int last = 0;
 
 void loop() {
   
-  /*if (last+10000 < millis()) { return; }
+//  if (last+10000 < millis()) { return; }
+//  last = millis();
   
-  last = millis();*/
+  delay(1000);
   
-  //delay(500);
-  
-  /*red = random(0, 255);
+  red = random(0, 255);
   green = random(0, 255);
-  blue = random(0, 255);*/
+  blue = random(0, 255);
   
   green = 255;
-  red = 255;
-  blue = 255;
+  red = 200;
+  blue = 200;
     
-//  analogWrite (RedPin, red);
-//  analogWrite (GreenPin, green);
-//  analogWrite (BluePin, blue);
+  analogWrite (RedPin, red);
+  analogWrite (GreenPin, green);
+  analogWrite (BluePin, blue);
 
-digitalWrite(RedPin, HIGH);
-digitalWrite(BluePin, HIGH);
-digitalWrite(GreenPin, HIGH);8
+//digitalWrite(RedPin, HIGH);
+//digitalWrite(BluePin, HIGH);
+//digitalWrite(GreenPin, HIGH);
   
 }
 
