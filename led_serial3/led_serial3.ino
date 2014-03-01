@@ -1,3 +1,5 @@
+#include <QueueList.h>
+
 unsigned red = 0;
 unsigned green = 0;
 unsigned blue = 0;
@@ -43,25 +45,25 @@ void doCommand(String command) {
 	// FORMAT: #RRGGBBTTTTT!
 	// GIVEN AS: RGGBBTTTTT
 
-	if (command.length < 7) { gia(); return; }
+	if (command.length() < 7) { gia(); return; }
 
-	String rStr = command.substr(0,2);
-	String gStr = command.substr(2,4);
-	String bStr = command.substr(4,6);
-	String tStr = command.substr(6);
+	String rStr = command.substring(0,2);
+	String gStr = command.substring(2,4);
+	String bStr = command.substring(4,6);
+	String tStr = command.substring(6);
 
 	int rVal = toInt(rStr,16);
 	int gVal = toInt(gStr,16);
 	int bVal = toInt(bStr,16);
-	int tVal = toInt(tStr);
+	int tVal = toInt(tStr,10);
 
 	TweenPush(rVal, gVal, bVal, tVal);
 }
 
 int toInt(String input, int base) {
 	int total = 0;
-	for (int i = 0; i < base.length; i++) {
-		total += (input[i]-'0')*pow(base, base.length-i-1);
+	for (int i = 0; i < input.length(); i++) {
+		total += (input[i]-'0')*pow(base, input.length()-i-1);
 	}
 	return total;
 }
@@ -94,7 +96,7 @@ TweenData liveTween;
 
 void TweenPush(int duration, int rTarget, int gTarget, int bTarget) {
 
-	Tween* tween = malloc(sizeof(tween));
+	Tween* tween = (Tween*)malloc(sizeof(tween));
 
 	tween->duration = duration;
 	tween->red = rTarget;
@@ -113,11 +115,11 @@ void TweenInit() {
 	}
 
 	// Get the Tween Input Data
-	tween = tweenQueue.peek();
+	Tween* tween = tweenQueue.peek();
 
 	// Save Timing Data
 	liveTween.startTime = millis();
-	liveTween.endTime = millis() + duration;
+	liveTween.endTime = millis() + tween->duration;
 
 	// Save Starting Values
 	liveTween.rStartVal = red;
@@ -131,29 +133,30 @@ void TweenInit() {
 
 }
 
-void TweenTick(tweens) {
+void TweenTick() {
 
 	if (tweenQueue.isEmpty()) {
 		return; 		
 	}
-	Tween current = tweens[0];
+	Tween* current = tweenQueue.peek();
 
-	if (current->endTime <= millis()) { 
-		tweenQueue.pop()
+	if (liveTween.endTime <= millis()) { 
+		Tween* done = tweenQueue.pop();
+		free(done);
 		return;
 	}
  
-	int tRel = millis() - current->startTime; 
-	int tDiff = (current->endTime - current->startTime);
+	int tRel = millis() - liveTween.startTime; 
+	int tDiff = (liveTween.endTime - liveTween.startTime);
 
-	int rDiff = (current->rEndVal - current->rStartVal);
-	red = current->rStartVal + (tRel/tDiff)*rDiff;
+	int rDiff = (liveTween.rEndVal - liveTween.rStartVal);
+	red = liveTween.rStartVal + (tRel/tDiff)*rDiff;
 
-	int gDiff = (current->gEndVal - current->gStartVal);
-	green = current->gStartVal + (tRel/tDiff)*gDiff;
+	int gDiff = (liveTween.gEndVal - liveTween.gStartVal);
+	green = liveTween.gStartVal + (tRel/tDiff)*gDiff;
 
-	int bDiff = (current->bEndVal - current->bStartVal);
-	blue = current->bStartVal + (tRel/tDiff)*bDiff;
+	int bDiff = (liveTween.bEndVal - liveTween.bStartVal);
+	blue = liveTween.bStartVal + (tRel/tDiff)*bDiff;
 
 }
 
