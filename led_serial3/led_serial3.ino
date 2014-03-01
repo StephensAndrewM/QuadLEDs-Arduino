@@ -20,22 +20,27 @@ void setup() {
 }
 
 int reading_state = 0;
+String command;
 
 void loop() {
 	
 	char byteIn;
-	String command;
 	while (Serial.available()) {
 		byteIn = Serial.read();
-		command += byteIn;
 
 		if (byteIn == '#') {
 			command = "";
 		} else if (byteIn == '!') {
 			doCommand(command);
-		}
+		} else {
+                        command += byteIn;
+                }
 
 	}
+
+  analogWrite(RedPin, red);
+  analogWrite(GreenPin, green);
+  analogWrite(BluePin, blue);
 
 	TweenTick();
 	
@@ -52,24 +57,44 @@ void doCommand(String command) {
 	String bStr = command.substring(4,6);
 	String tStr = command.substring(6);
 
+//        Serial.println(rStr);
+//        Serial.println(gStr);
+//        Serial.println(bStr);
+
 	int rVal = toInt(rStr,16);
 	int gVal = toInt(gStr,16);
 	int bVal = toInt(bStr,16);
 	int tVal = toInt(tStr,10);
+
+        Serial.println(rVal);
+        Serial.println(gVal);
+        Serial.println(bVal);
+        Serial.println(tVal);
 
 	TweenPush(rVal, gVal, bVal, tVal);
 }
 
 int toInt(String input, int base) {
 	int total = 0;
+        int digit;
 	for (int i = 0; i < input.length(); i++) {
-		total += (input[i]-'0')*pow(base, input.length()-i-1);
+                if (input[i] >= '0' && input[i] <= '9') {
+                  digit = input[i]-'0';
+                } else {
+                  digit = input[i]-'A'+10;
+                }
+  
+		total += digit*pow(base, input.length()-i-1);
+                //Serial.println(input);
+                //Serial.println(input[i]);
+                //Serial.println(digit);
+                //Serial.println(total);
 	}
 	return total;
 }
 
 void gia() {
-	Serial.print("X");
+	Serial.println("NO GIA BAD NUMBER");
 }
 
 
