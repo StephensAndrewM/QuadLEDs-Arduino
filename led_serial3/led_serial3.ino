@@ -48,8 +48,22 @@ void doCommand(String command) {
 	String rStr = command.substr(0,2);
 	String gStr = command.substr(2,4);
 	String bStr = command.substr(4,6);
+	String tStr = command.substr(6);
 
-	TweenInit();
+	int rVal = toInt(rStr,16);
+	int gVal = toInt(gStr,16);
+	int bVal = toInt(bStr,16);
+	int tVal = toInt(tStr);
+
+	TweenPush(rVal, gVal, bVal, tVal);
+}
+
+int toInt(String input, int base) {
+	int total = 0;
+	for (int i = 0; i < base.length; i++) {
+		total += (input[i]-'0')*pow(base, base.length-i-1);
+	}
+	return total;
 }
 
 void gia() {
@@ -57,9 +71,14 @@ void gia() {
 }
 
 
+struct Tween {
+	int duration;
+	int red;
+	int green;
+	int blue;
+};
 
-
-typedef struct Tween {
+struct TweenData {
 	int startTime;
 	int endTime;
 	int rStartVal;
@@ -68,36 +87,59 @@ typedef struct Tween {
 	int gEndVal;
 	int bStartVal;
 	int bEndVal;
-} Tween*;
+};
 
-void TweenInit(int duration, int rTarget, int gTarget, int bTarget) {
+QueueList<Tween*> tweenQueue;
+TweenData liveTween;
+
+void TweenPush(int duration, int rTarget, int gTarget, int bTarget) {
 
 	Tween* tween = malloc(sizeof(tween));
 
-	tween->startTime = millis();
-	tween->endTime = millis() + duration;
+	tween->duration = duration;
+	tween->red = rTarget;
+	tween->green = gTarget;
+	tween->blue = bTarget;
 
-	tween->rStartVal = red;
-	tween->gStartVal = green;
-	tween->bStartVal = blue;
+	tweenQueue.push(tween);
 
-	tween->rEndVal = rTarget;
-	tween->gEndVal = gTarget;
-	tween->bEndVal = bTarget;
+}
 
-	// APPEND TO LIST
+void TweenInit() {
+
+	// Don't Do Anything if No Tween to Initialize
+	if (tweenQueue.isEmpty()) {
+		return; 		
+	}
+
+	// Get the Tween Input Data
+	tween = tweenQueue.peek();
+
+	// Save Timing Data
+	liveTween.startTime = millis();
+	liveTween.endTime = millis() + duration;
+
+	// Save Starting Values
+	liveTween.rStartVal = red;
+	liveTween.gStartVal = green;
+	liveTween.bStartVal = blue;
+
+	// Save Ending Values
+	liveTween.rEndVal = tween->red;
+	liveTween.gEndVal = tween->green;
+	liveTween.bEndVal = tween->blue;
 
 }
 
 void TweenTick(tweens) {
 
-	if (/* TWEENS LENGTH 0*/) {
+	if (tweenQueue.isEmpty()) {
 		return; 		
 	}
 	Tween current = tweens[0];
 
 	if (current->endTime <= millis()) { 
-		// REMOVE FROM LIST
+		tweenQueue.pop()
 		return;
 	}
  
@@ -149,7 +191,7 @@ void setPwmFrequency(int pin, int divisor) {
 	}
 }
 
-String getStringInput() {
+/*String getStringInput() {
 	String content = "";
 	char character;
 
@@ -165,3 +207,4 @@ String getStringInput() {
 void badInput() {
 	Serial.write("X");
 }
+*/
