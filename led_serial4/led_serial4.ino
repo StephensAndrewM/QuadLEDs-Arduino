@@ -1,10 +1,28 @@
-unsigned red = 0;
-unsigned green = 0;
-unsigned blue = 0;
+unsigned red;
+unsigned green;
+unsigned blue;
 
 int RedPin   = 9;
 int GreenPin = 10;
 int BluePin  = 11;
+
+struct TweenData {
+	unsigned long startTime;
+	unsigned long endTime;
+
+	int rStartVal;
+	int rEndVal;
+	int rDiff;
+
+	int gStartVal;
+	int gEndVal;
+	int gDiff;
+
+	int bStartVal;
+	int bEndVal;
+	int bDiff;
+};
+TweenData tween;
 
 void setup() {
 	
@@ -14,6 +32,12 @@ void setup() {
 	setPwmFrequency(BluePin, divisor);
 
 	Serial.begin(9600);
+
+        red = 0;
+        green = 128;
+        blue = 128;
+        
+        tween.endTime = 0;
 	
 }
 
@@ -33,7 +57,6 @@ void loop() {
 		} else {
 			command += byteIn;
 		}
-
 	}
 
 	analogWrite(RedPin, red);
@@ -55,6 +78,7 @@ void doCommand(String command) {
 	String bStr = command.substring(4,6);
 	String tStr = command.substring(6);
 
+        Serial.println("RGB Input:");
 	Serial.println(rStr);
 	Serial.println(gStr);
 	Serial.println(bStr);
@@ -64,10 +88,15 @@ void doCommand(String command) {
 	int bVal = toInt(bStr,16);
 	int tVal = toInt(tStr,10);
 
+        Serial.println("RGBT Interpreted Values:");
 	Serial.println(rVal);
 	Serial.println(gVal);
 	Serial.println(bVal);
 	Serial.println(tVal);
+
+        if (rVal > 255) { gia(); rVal = 0; }
+        if (gVal > 255) { gia(); gVal = 0; }
+        if (bVal > 255) { gia(); bVal = 0; } 
 
 	T_start(tVal, rVal, gVal, bVal);
 
@@ -77,28 +106,14 @@ void gia() {
 	Serial.println("NO GIA BAD NUMBER");
 }
 
-struct TweenData {
-	int startTime;
-	int endTime;
-
-	int rStartVal;
-	int rEndVal;
-	int rDiff;
-
-	int gStartVal;
-	int gEndVal;
-	int gDiff;
-
-	int bStartVal;
-	int bEndVal;
-	int bDiff;
-};
-TweenData tween;
-
 void T_start(int duration, int rTarget, int gTarget, int bTarget) {
+  
+        Serial.println("Tween Start");
 	
 	tween.startTime = millis();
 	tween.endTime = millis() + (unsigned long)duration;
+        //Serial.println("Current Time: "+(int)millis());
+        //Serial.println("End Time: "+(int)tween.endTime);
 	
 	tween.rStartVal = red;
 	tween.gStartVal = green;
@@ -112,16 +127,16 @@ void T_start(int duration, int rTarget, int gTarget, int bTarget) {
 	tween.gDiff = (tween.gEndVal - tween.gStartVal);
 	tween.bDiff = (tween.bEndVal - tween.bStartVal);
 	
-	Serial.println(tween.rDiff);
-	Serial.println(tween.gDiff);
-	Serial.println(tween.bDiff);
+	Serial.println("R Diff: "+tween.rDiff);
+	Serial.println("G Diff: "+tween.gDiff);
+	Serial.println("B Diff: "+tween.bDiff);
 	
 }
 
 void T_tick() {
   
   if (T_isDone()) { return; }
- 
+  
   unsigned long tRel = millis() - tween.startTime; 
   unsigned long tDiff = (tween.endTime - tween.startTime);
   
@@ -132,7 +147,7 @@ void T_tick() {
 }
 
 boolean T_isDone() {
-  return (tween.endTime < millis());
+  return (tween.endTime <= millis());
 }
 
 
@@ -140,7 +155,10 @@ int toInt(String input, int base) {
 	int total = 0;
 	int digit;
 
+        input.toUpperCase();
+
 	for (int i = 0; i < input.length(); i++) {
+                //Serial.println("Processing Input Character");
 		if (input[i] >= '0' && input[i] <= '9') {
 		  digit = input[i]-'0';
 		} else {

@@ -28,9 +28,9 @@ void loop() {
   green = random(0, 255);
   blue = random(0, 255);
   
-  green = 255;
-  red = 200;
-  blue = 200;
+  green = 200;
+  red = 250;
+  blue = 70;
     
   analogWrite (RedPin, red);
   analogWrite (GreenPin, green);
