@@ -33,11 +33,11 @@ void setup() {
 
 	Serial.begin(9600);
 
-        red = 0;
-        green = 128;
-        blue = 128;
-        
-        tween.endTime = 0;
+	red = 0;
+	green = 128;
+	blue = 128;
+	
+	tween.endTime = 0;
 	
 }
 
@@ -52,8 +52,8 @@ void loop() {
 
 		if (byteIn == '#') {
 			command = "";
-		} else if (byteIn == '!') {
-			doCommand(command);
+		} else if (byteIn == '~' || byteIn == '!') {
+			doCommand(command, byteIn);
 		} else {
 			command += byteIn;
 		}
@@ -67,18 +67,21 @@ void loop() {
 	
 }
 
-void doCommand(String command) {
+const char SET_COLOR = '!';
+const char FADE_COLOR = '~';
+
+void doCommand(String command, char processMode) {
 	// FORMAT: #RRGGBBTTTTT!
 	// GIVEN AS: RGGBBTTTTT
 
-	if (command.length() < 7) { gia(); return; }
+	if (command.length() < 6) { gia(); return; }
 
 	String rStr = command.substring(0,2);
 	String gStr = command.substring(2,4);
 	String bStr = command.substring(4,6);
 	String tStr = command.substring(6);
 
-        Serial.println("RGB Input:");
+	Serial.println("RGB Input:");
 	Serial.println(rStr);
 	Serial.println(gStr);
 	Serial.println(bStr);
@@ -88,17 +91,26 @@ void doCommand(String command) {
 	int bVal = toInt(bStr,16);
 	int tVal = toInt(tStr,10);
 
-        Serial.println("RGBT Interpreted Values:");
+	Serial.println("RGBT Interpreted Values:");
 	Serial.println(rVal);
 	Serial.println(gVal);
 	Serial.println(bVal);
 	Serial.println(tVal);
 
-        if (rVal > 255) { gia(); rVal = 0; }
-        if (gVal > 255) { gia(); gVal = 0; }
-        if (bVal > 255) { gia(); bVal = 0; } 
+	if (rVal > 255) { gia(); rVal = 0; }
+	if (gVal > 255) { gia(); gVal = 0; }
+	if (bVal > 255) { gia(); bVal = 0; } 
 
-	T_start(tVal, rVal, gVal, bVal);
+	// Set Values Directly if No Fade Time
+	if (processMode == SET_COLOR) {
+		tween.endTime = millis()-1;
+		red = rVal;
+		green = gVal;
+		blue = bVal;
+	} else if (processMode == FADE_COLOR) {
+		T_start(tVal, rVal, gVal, bVal);
+	}
+	
 
 }
 
@@ -107,13 +119,13 @@ void gia() {
 }
 
 void T_start(int duration, int rTarget, int gTarget, int bTarget) {
-  
-        Serial.println("Tween Start");
+	
+	Serial.println("Tween Start");
 	
 	tween.startTime = millis();
 	tween.endTime = millis() + (unsigned long)duration;
-        //Serial.println("Current Time: "+(int)millis());
-        //Serial.println("End Time: "+(int)tween.endTime);
+	//Serial.println("Current Time: "+(int)millis());
+	//Serial.println("End Time: "+(int)tween.endTime);
 	
 	tween.rStartVal = red;
 	tween.gStartVal = green;
@@ -127,27 +139,27 @@ void T_start(int duration, int rTarget, int gTarget, int bTarget) {
 	tween.gDiff = (tween.gEndVal - tween.gStartVal);
 	tween.bDiff = (tween.bEndVal - tween.bStartVal);
 	
-	Serial.println("R Diff: "+tween.rDiff);
-	Serial.println("G Diff: "+tween.gDiff);
-	Serial.println("B Diff: "+tween.bDiff);
+	//Serial.println("R Diff: "+tween.rDiff);
+	//Serial.println("G Diff: "+tween.gDiff);
+	//Serial.println("B Diff: "+tween.bDiff);
 	
 }
 
 void T_tick() {
-  
-  if (T_isDone()) { return; }
-  
-  unsigned long tRel = millis() - tween.startTime; 
-  unsigned long tDiff = (tween.endTime - tween.startTime);
-  
-  red = tween.rStartVal + (tRel/(float)tDiff)*tween.rDiff;
-  green = tween.gStartVal + (tRel/(float)tDiff)*tween.gDiff;
-  blue = tween.bStartVal + (tRel/(float)tDiff)*tween.bDiff;
-  
+	
+	if (T_isDone()) { return; }
+	
+	unsigned long tRel = millis() - tween.startTime; 
+	unsigned long tDiff = (tween.endTime - tween.startTime);
+	
+	red = tween.rStartVal + (tRel/(float)tDiff)*tween.rDiff;
+	green = tween.gStartVal + (tRel/(float)tDiff)*tween.gDiff;
+	blue = tween.bStartVal + (tRel/(float)tDiff)*tween.bDiff;
+	
 }
 
 boolean T_isDone() {
-  return (tween.endTime <= millis());
+	return (tween.endTime <= millis());
 }
 
 
@@ -155,14 +167,14 @@ int toInt(String input, int base) {
 	int total = 0;
 	int digit;
 
-        input.toUpperCase();
+	input.toUpperCase();
 
 	for (int i = 0; i < input.length(); i++) {
-                //Serial.println("Processing Input Character");
+		//Serial.println("Processing Input Character");
 		if (input[i] >= '0' && input[i] <= '9') {
-		  digit = input[i]-'0';
+			digit = input[i]-'0';
 		} else {
-		  digit = input[i]-'A'+10;
+			digit = input[i]-'A'+10;
 		}
 		total += digit*pow(base, input.length()-i-1);
 		//Serial.println(input);
