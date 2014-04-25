@@ -34,10 +34,11 @@ void setup() {
 	Serial.begin(9600);
 
 	red = 0;
-	green = 128;
-	blue = 128;
+	green = 0;
+	blue = 0;
 	
 	tween.endTime = 0;
+        T_start(1000, 200, 250, 70);
 	
 }
 
